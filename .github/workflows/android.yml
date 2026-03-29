@@ -38,15 +38,10 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          # Bundle JS into assets so APK works standalone without Metro
-          npx react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file node_modules/expo/AppEntry.js \
-            --bundle-output app/src/main/assets/index.android.bundle \
-            --assets-dest app/src/main/res
-          # Build the APK
-          ./gradlew assembleDebug
+          # Bundle JS + assets into the APK (skip Metro dev server)
+          ./gradlew assembleDebug \
+            -PreactNativeDevServerPort=0 \
+            -PbundleInDebug=true
         env:
           EXPO_NO_DOTENV: 1
 
