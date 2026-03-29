@@ -34,9 +34,27 @@ jobs:
       - name: Generate native Android project
         run: npx expo prebuild --platform android --clean
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
-        working-directory: android
+      - name: Build debug APK with bundled JS
+        run: |
+          cd android
+          chmod +x gradlew
+          # Bundle JS into assets so APK works standalone without Metro
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file node_modules/expo/AppEntry.js \
+            --bundle-output app/src/main/assets/index.android.bundle \
+            --assets-dest app/src/main/res
+          # Build the APK
+          ./gradlew assembleDebug
+        env:
+          EXPO_NO_DOTENV: 1
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: elevated-roots-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Create Release
         if: github.ref == 'refs/heads/main'
